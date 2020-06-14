@@ -57,10 +57,11 @@ class JobAd(db.Model):
     def de_hyphen_non_coded_words(self, word_list):
         for word in word_list:
             if word.find("-"):
-                is_coded_word = False
-                for coded_word in hyphenated_coded_words:
-                    if word.startswith(coded_word):
-                        is_coded_word = True
+                is_coded_word = any(
+                    word.startswith(coded_word)
+                    for coded_word in hyphenated_coded_words
+                )
+
                 if not is_coded_word:
                     word_index = word_list.index(word)
                     word_list.remove(word)
@@ -86,10 +87,7 @@ class JobAd(db.Model):
     def assess_coding(self):
         coding_score = self.feminine_word_count - self.masculine_word_count
         if coding_score == 0:
-            if self.feminine_word_count:
-                self.coding = "neutral"
-            else:
-                self.coding = "empty"
+            self.coding = "neutral" if self.feminine_word_count else "empty"
         elif coding_score > 3:
             self.coding = "strongly feminine-coded"
         elif coding_score > 0:
